@@ -57,6 +57,7 @@ const startServer = async () => {
     logger.info(`Server running on port ${config.port}`);
   });
 };
+//"C:\Program Files\PostgreSQL\16\bin\createdb.exe" -U postgres -h localhost zagis
 
 startServer();
 
