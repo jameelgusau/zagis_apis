@@ -61,6 +61,6 @@ const startServer = async () => {
 
 
 //"C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -d zagis C:\zagis_backup.dump
-
+//pm2 start dist/index.js --name zagis-backend
 startServer();
 
