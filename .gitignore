@@ -67,6 +67,8 @@ node_modules
 jspm_packages
 typings
 
+!.yarnrc.yml
+
 # Optional npm cache directory
 .npm
 .evn
