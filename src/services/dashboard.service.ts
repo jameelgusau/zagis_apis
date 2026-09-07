@@ -56,3 +56,45 @@ export const getDashboardGraphService = async () => {
   });
   return data;
 }
+
+
+import { fn, col, literal } from "sequelize";
+
+export const getDashboardFilesCountsbyUserService = async () => {
+  const result = await db.Account.findAll({
+    attributes: [
+      "id",
+      "full_name",
+      [fn("COUNT", col("files.id")), "totalFiles"],
+    ],
+
+    include: [
+      {
+        model: db.File,
+        as: "files",
+        attributes: [],
+        required: true,
+      },
+    ],
+
+    group: [
+      "account.id",
+      "account.full_name",
+    ],
+
+    order: [
+      [literal('"totalFiles"'), "DESC"],
+    ],
+  });
+
+// const accounts = await db.Account.findAll({
+//   include: [
+//     {
+//       model: db.File,
+//       as: "files",
+//     },
+//   ],
+//   logging: console.log,
+// });
+  return result;
+};

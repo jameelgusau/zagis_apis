@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getDashboardStatsService, getDashboardGraphService } from "../services/dashboard.service";
+import { getDashboardStatsService,getDashboardFilesCountsbyUserService, getDashboardGraphService } from "../services/dashboard.service";
 
 
 
@@ -12,6 +12,23 @@ export const getDashboardStats = async (req:Request, res:Response, next: NextFun
       meta: {
         status: 200,
         message: "Dashboard stats fetched"
+      },
+      data
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardFilesCountsbyUser = async (req:Request, res:Response, next: NextFunction) => {
+  try {
+    const data = await getDashboardFilesCountsbyUserService();
+
+    res.json({
+      meta: {
+        status: 200,
+        message: "Dashboard files counts by user fetched"
       },
       data
     });

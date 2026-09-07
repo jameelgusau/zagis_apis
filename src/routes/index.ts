@@ -9,7 +9,7 @@ import { deleteDepartment, Department, DepartmentSchema, getDepartments, getDepa
 import { addRank, addRankSchema, deleteRank, getRanks, updateRank, updateRankSchema } from '../controllers/rank.controller';
 import { Account, AccountSchema, authenticate, authenticateSchema, changePassword, changePasswordSchema, deleteAccount, forgotPassword, forgotPasswordSchema, getUsers, refreshToken, resetPassword, resetPasswordSchema, revokeToken, revokeTokenSchema, updateAccount, updateAccountSchema, updateUser, updateUserSchema, verifyEmail, verifyEmailSchema } from '../controllers/account.controller';
 import { Roles } from '../utils/roles';
-import { getDashboardGraph, getDashboardStats } from '../controllers/dashboard.controller';
+import { getDashboardFilesCountsbyUser, getDashboardGraph, getDashboardStats } from '../controllers/dashboard.controller';
 import { addLanduse, addLanduseSchema, addPurpose, addPurposeSchema, deletePurpose, getLanduse, getLanduseAndPurpose, getPurposes, updatePurpose, updatePurposeSchema } from '../controllers/landuse.controller';
 
 
@@ -21,6 +21,7 @@ router.post('/account', authorize(Roles.admin), AccountSchema, Account);
 router.delete('/account/:id', authorize(Roles.admin), deleteAccount)
 router.put("/account", authorize(Roles.admin), updateAccountSchema, updateAccount)
 router.get('/users', authorize(), getUsers);
+router.get('/files-counts-by-user', authorize(), getDashboardFilesCountsbyUser);
 router.put('/user',
   authorize(),
   fileUpload({ createParentPath: true, useTempFiles: false }),

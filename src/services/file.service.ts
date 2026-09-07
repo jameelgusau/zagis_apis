@@ -8,11 +8,16 @@ interface fileAttributes {
     title_holder_name: string;
     landuse_id: string
     purpose_id: string
+    created_by: string
 }
 
-interface Extern extends fileAttributes {
+interface Extern {
+    cofo_number: string;
+    title_holder_name: string;
+    landuse_id: string
+    purpose_id: string
     file_id: string;
-    updated_by?: string
+    updated_by: string
 }
 
 export const fileService = async (params: fileAttributes) => {
@@ -21,6 +26,7 @@ export const fileService = async (params: fileAttributes) => {
         title_holder_name,
         landuse_id,
         purpose_id,
+        created_by,
         ...recordData
     } = params;
     const findFile = await db.File.findOne({
@@ -36,18 +42,13 @@ export const fileService = async (params: fileAttributes) => {
 
     try {
         const file = await db.File.create(
-            {
-                cofo_number,
-                title_holder_name,
-                landuse_id,
-                purpose_id,
-            },
+            params,
             { transaction }
         );
 
         await db.Record.create(
             {
-                ...recordData,
+                ...params,
                 file_id: file.id,
             },
             { transaction }
@@ -92,21 +93,15 @@ export const updateFileService = async (params: Extern) => {
     const t = await db.sequelize.transaction();
     try {
         await db.File.update(
-            {
-                cofo_number,
-                title_holder_name,
-                landuse_id,
-                purpose_id,
-                updated_by
-            },
+        params,
             { where: { id: file_id }, transaction: t }
         );
 
         await db.Record.upsert(
             {
-                ...rest,
+                ...params,
                 file_id,
-                updated_by
+            
             },
             { transaction: t }
         );

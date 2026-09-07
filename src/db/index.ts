@@ -89,7 +89,16 @@ export const initialize = async () => {
     Account.belongsTo(Rank, {
         foreignKey: "rank_id",
     });
+    Record.belongsTo(Account, {
+        foreignKey: 'created_by',
+        as: 'creator',
+    });
 
+    Account.hasMany(Record, {
+        foreignKey: 'created_by',
+        onDelete: "SET NULL",
+        as: 'records',
+    });
     File.hasOne(Record, {
         foreignKey: "file_id",
         onDelete: "CASCADE"
@@ -103,7 +112,16 @@ export const initialize = async () => {
         onDelete: "SET NULL",
         onUpdate: "CASCADE"
     })
+    File.belongsTo(Account, {
+        foreignKey: 'created_by',
+        as: 'creator',
+    });
 
+    Account.hasMany(File, {
+        foreignKey: 'created_by',
+        onDelete: "SET NULL",
+        as: 'files',
+    });
     File.belongsTo(Landuse, {
         foreignKey: "landuse_id",
     });

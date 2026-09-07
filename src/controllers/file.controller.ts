@@ -37,7 +37,7 @@ export const File = async (req: JWTRequest, res: Response, next: NextFunction) =
         const { body } = req
         const data = {
             ...body,
-            updated_by: req.auth?.id,
+            created_by: req.auth?.id,
         }
         const account = await fileService(data);
         res.json({
