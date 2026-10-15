@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import fs from 'fs';
+import Decimal from 'decimal.js';
 import { Request as JWTRequest } from "express-jwt";
 import validateRequest from "../middlewares/validate-request";
 import { fileService, getFilesServices, updateFileService, deleteFileService } from "../services/file.service";
@@ -132,3 +133,4 @@ export const deleteFile = async (req: JWTRequest, res: Response, next: NextFunct
     }
 }
 
+console.log(Decimal.add(0.1, 0.2).toString()); // Output: 0.3
