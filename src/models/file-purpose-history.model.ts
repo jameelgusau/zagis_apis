@@ -86,9 +86,8 @@ export const initFilePurposeHistoryModel = (sequelize: Sequelize) => {
                     this.effective_from &&
                     this.effective_to < this.effective_from
                 ) {
-                    throw new Error(
-                        "effective_to must be greater than or equal to effective_from"
-                    );
+                    throw "effective_to must be greater than or equal to effective_from"
+            
                 }
             },
         },

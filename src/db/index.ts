@@ -23,7 +23,7 @@ import { FileNameHistory, initFileNameHistoryModel } from "../models/file_name_h
 import { GroundRentPayment, initGroundRentPaymentModel } from "../models/groundRentPayment.model";
 import { GroundRentPaymentAllocation, initGroundRentPaymentAllocationModel } from "../models/ground_rent_payment_allocations.model";
 import { GroundRentPenalty, initGroundRentPenaltyModel } from "../models/GroundRentPenalty.model";
-
+import { GroundRentCredit, initGroundRentCreditModel } from "../models/groundRentCredit.model";
 
 export interface Database {
     sequelize: Sequelize;
@@ -48,6 +48,7 @@ export interface Database {
     GroundRentPayment: typeof GroundRentPayment;
     GroundRentPaymentAllocation: typeof GroundRentPaymentAllocation;
     GroundRentPenalty: typeof GroundRentPenalty;
+    GroundRentCredit: typeof GroundRentCredit;
 }
 
 export let db: Database;
@@ -85,7 +86,7 @@ export const initialize = async () => {
     initGroundRentPaymentModel(sequelize);
     initGroundRentPaymentAllocationModel(sequelize);
     initGroundRentPenaltyModel(sequelize);
-
+    initGroundRentCreditModel(sequelize);
     Account.hasMany(RefreshToken, {
         foreignKey: "account_id",
         onDelete: "CASCADE",
@@ -170,172 +171,194 @@ export const initialize = async () => {
         foreignKey: "purpose_id",
     });
 
-Zone.hasMany(GroundRentRate, {
+    LGA.hasMany(GroundRentRate, {
+        foreignKey: "lga_id",
+        as: "groundRentRates",
+    });
+
+    GroundRentRate.belongsTo(LGA, {
+        foreignKey: "lga_id",
+    });
+
+    Purpose.hasMany(GroundRentRate, {
+        foreignKey: "purpose_id",
+        as: "groundRentRates",
+    });
+
+    GroundRentRate.belongsTo(Purpose, {
+        foreignKey: "purpose_id",
+    });
+
+    File.hasMany(FilePurposeHistory, {
+        foreignKey: "file_id",
+        as: "purposeHistory",
+        onDelete: "CASCADE",
+    });
+
+    FilePurposeHistory.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+
+
+    Purpose.hasMany(FilePurposeHistory, {
+        foreignKey: "purpose_id",
+        as: "filePurposeHistory",
+        onDelete: "RESTRICT",
+    });
+
+    FilePurposeHistory.belongsTo(Purpose, {
+        foreignKey: "purpose_id",
+        as: "purpose",
+    });
+
+    File.hasMany(GroundRentAssessment, {
+        foreignKey: "file_id",
+        as: "groundRentAssessments",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
+
+    GroundRentAssessment.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+
+    GroundRentAssessment.hasMany(GroundRentAssessmentItem, {
+        foreignKey: "assessment_id",
+        as: "items",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
+
+    GroundRentAssessmentItem.belongsTo(GroundRentAssessment, {
+        foreignKey: "assessment_id",
+        as: "assessment",
+    });
+
+    GroundRentRate.hasMany(GroundRentAssessmentItem, {
+        foreignKey: "rate_id",
+        as: "assessmentItems",
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
+    });
+
+    GroundRentAssessmentItem.belongsTo(GroundRentRate, {
+        foreignKey: "rate_id",
+        as: "rate",
+    });
+
+    File.hasMany(FileGrant, {
+        foreignKey: "file_id",
+        as: "grants",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
+
+    FileGrant.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+    File.hasMany(FileAreaHistory, {
+        foreignKey: "file_id",
+        as: "areaHistory",
+        onDelete: "CASCADE",
+    });
+
+    FileAreaHistory.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+
+    File.hasMany(FileNameHistory, {
+        foreignKey: "file_id",
+        as: "nameHistory",
+        onDelete: "CASCADE",
+    });
+
+    FileNameHistory.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+    File.hasMany(GroundRentPayment, {
+        foreignKey: "file_id",
+        as: "groundRentPayments",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
+
+    GroundRentPayment.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+Zone.hasMany(LGA, {
     foreignKey: "zone_id",
-    as: "groundRentRates",
+    as: "lgas",
 });
 
-GroundRentRate.belongsTo(Zone, {
+LGA.belongsTo(Zone, {
     foreignKey: "zone_id",
+    as: "zone",
 });
+    GroundRentPayment.hasMany(GroundRentPaymentAllocation, {
+        foreignKey: "payment_id",
+        as: "allocations",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
 
-Purpose.hasMany(GroundRentRate, {
-    foreignKey: "purpose_id",
-    as: "groundRentRates",
-});
+    GroundRentPaymentAllocation.belongsTo(GroundRentPayment, {
+        foreignKey: "payment_id",
+        as: "payment",
+    });
 
-GroundRentRate.belongsTo(Purpose, {
-    foreignKey: "purpose_id",
-});
+    GroundRentAssessmentItem.hasMany(GroundRentPaymentAllocation, {
+        foreignKey: "assessment_item_id",
+        as: "paymentAllocations",
+        onDelete: "RESTRICT",
+    });
 
-File.hasMany(FilePurposeHistory, {
-    foreignKey: "file_id",
-    as: "purposeHistory",
-    onDelete: "CASCADE",
-});
-
-FilePurposeHistory.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
+    GroundRentPaymentAllocation.belongsTo(GroundRentAssessmentItem, {
+        foreignKey: "assessment_item_id",
+        as: "assessmentItem",
+    });
 
 
-Purpose.hasMany(FilePurposeHistory, {
-    foreignKey: "purpose_id",
-    as: "filePurposeHistory",
-    onDelete: "RESTRICT",
-});
+    File.hasMany(GroundRentPenalty, {
+        foreignKey: "file_id",
+        as: "groundRentPenalties",
+        onDelete: "CASCADE",
+    });
 
-FilePurposeHistory.belongsTo(Purpose, {
-    foreignKey: "purpose_id",
-    as: "purpose",
-});
+    GroundRentPenalty.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
 
-File.hasMany(GroundRentAssessment, {
-    foreignKey: "file_id",
-    as: "groundRentAssessments",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-});
 
-GroundRentAssessment.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
+    File.hasMany(GroundRentCredit, {
+        foreignKey: "file_id",
+        as: "groundRentCredits",
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
+    });
 
-GroundRentAssessment.hasMany(GroundRentAssessmentItem, {
-    foreignKey: "assessment_id",
-    as: "items",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-});
+    GroundRentCredit.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
 
-GroundRentAssessmentItem.belongsTo(GroundRentAssessment, {
-    foreignKey: "assessment_id",
-    as: "assessment",
-});
+    GroundRentPayment.hasOne(GroundRentCredit, {
+        foreignKey: "payment_id",
+        as: "credit",
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
+    });
 
-GroundRentRate.hasMany(GroundRentAssessmentItem, {
-    foreignKey: "rate_id",
-    as: "assessmentItems",
-    onDelete: "RESTRICT",
-    onUpdate: "CASCADE",
-});
-
-GroundRentAssessmentItem.belongsTo(GroundRentRate, {
-    foreignKey: "rate_id",
-    as: "rate",
-});
-
-File.hasMany(FileGrant, {
-    foreignKey: "file_id",
-    as: "grants",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-});
-
-FileGrant.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
-File.hasMany(FileAreaHistory, {
-    foreignKey: "file_id",
-    as: "areaHistory",
-    onDelete: "CASCADE",
-});
-
-FileAreaHistory.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
-
-File.hasMany(FileNameHistory, {
-    foreignKey: "file_id",
-    as: "nameHistory",
-    onDelete: "CASCADE",
-});
-
-FileNameHistory.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
-File.hasMany(GroundRentPayment, {
-    foreignKey: "file_id",
-    as: "groundRentPayments",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-});
-
-GroundRentPayment.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
-
-GroundRentPayment.hasMany(GroundRentPaymentAllocation, {
-    foreignKey: "payment_id",
-    as: "allocations",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-});
-
-GroundRentPaymentAllocation.belongsTo(GroundRentPayment, {
-    foreignKey: "payment_id",
-    as: "payment",
-});
-
-GroundRentAssessmentItem.hasMany(GroundRentPaymentAllocation, {
-    foreignKey: "assessment_item_id",
-    as: "paymentAllocations",
-    onDelete: "RESTRICT",
-});
-
-GroundRentPaymentAllocation.belongsTo(GroundRentAssessmentItem, {
-    foreignKey: "assessment_item_id",
-    as: "assessmentItem",
-});
-
-GroundRentAssessmentItem.hasMany(GroundRentPaymentAllocation, {
-    foreignKey: "assessment_item_id",
-    as: "paymentAllocations",
-    onDelete: "RESTRICT",
-});
-
-GroundRentPaymentAllocation.belongsTo(GroundRentAssessmentItem, {
-    foreignKey: "assessment_item_id",
-    as: "assessmentItem",
-});
-
-File.hasMany(GroundRentPenalty, {
-    foreignKey: "file_id",
-    as: "groundRentPenalties",
-    onDelete: "CASCADE",
-});
-
-GroundRentPenalty.belongsTo(File, {
-    foreignKey: "file_id",
-    as: "file",
-});
-
+    GroundRentCredit.belongsTo(GroundRentPayment, {
+        foreignKey: "payment_id",
+        as: "payment",
+    });
 
     await sequelize.authenticate();
     await sequelize.sync();
@@ -362,5 +385,6 @@ GroundRentPenalty.belongsTo(File, {
         GroundRentPayment,
         GroundRentPaymentAllocation,
         GroundRentPenalty,
+        GroundRentCredit,
     };
 };

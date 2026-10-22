@@ -36,7 +36,7 @@ export const createAnnualGroundRentPenalty = async (
             });
 
             if (!file) {
-                throw new Error("File not found.");
+                throw "File not found."
             }
 
             // Never create a second penalty for the same file and year.

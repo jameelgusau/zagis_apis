@@ -11,6 +11,8 @@ import { Account, AccountSchema, authenticate, authenticateSchema, changePasswor
 import { Roles } from '../utils/roles';
 import { getDashboardFilesCountsbyUser, getDashboardGraph, getDashboardStats } from '../controllers/dashboard.controller';
 import { addLanduse, addLanduseSchema, addPurpose, addPurposeSchema, deletePurpose, getLanduse, getLanduseAndPurpose, getPurposes, updatePurpose, updatePurposeSchema } from '../controllers/landuse.controller';
+import { addZone, deleteZone, ZoneSchema, ZoneUpdateSchema, updateZone, getZoneById, getAllZones } from '../controllers/zone.controller';
+import { addLGA, deleteLGA, getAllLGAs, getLGAById, LGASchema, LGAUpdateSchema, updateLGA } from '../controllers/lga.controller';
 
 
 const router = express.Router();
@@ -75,5 +77,18 @@ router.delete('/file/:id', authorize(Roles.admin), deleteFile);
 router.get("/dashboard/stats", authorize(), getDashboardStats);
 router.get("/dashboard/graph", authorize(), getDashboardGraph);
 
+//zone
+router.post('/zone', authorize(Roles.admin), ZoneSchema, addZone);
+router.put('/zone', authorize(Roles.admin), ZoneUpdateSchema, updateZone);
+router.get('/zone', authorize(), getAllZones);
+router.get('/zone/:zone_id', authorize(), getZoneById);
+router.delete('/zone/:id', authorize(Roles.admin), deleteZone);
+
+//LGA
+router.post('/lga', authorize(Roles.admin), LGASchema, addLGA)
+router.put('/lga', authorize(Roles.admin), LGAUpdateSchema, updateLGA);
+router.get('/lga', authorize(), getAllLGAs);
+router.get('/lga/:lga_id', authorize(), getLGAById);
+router.delete('/lga/:id', authorize(Roles.admin), deleteLGA)
 
 export default router

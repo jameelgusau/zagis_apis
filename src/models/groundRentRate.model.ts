@@ -1,3 +1,4 @@
+
 import {
     DataTypes,
     Model,
@@ -10,7 +11,7 @@ import {
     BelongsToGetAssociationMixin,
 } from "sequelize";
 
-import { Zone } from "./zone.model";
+import { LGA } from "./lga.model";
 import { Purpose } from "./purpose.model";
 
 export class GroundRentRate extends Model<
@@ -19,9 +20,9 @@ export class GroundRentRate extends Model<
 > {
     declare id: CreationOptional<string>;
 
-    declare zone_id: ForeignKey<Zone["id"]>;
-    declare zone?: NonAttribute<Zone>;
-    declare getZone: BelongsToGetAssociationMixin<Zone>;
+    declare lga_id: ForeignKey<LGA["id"]>;
+    declare lga?: NonAttribute<LGA>;
+    declare getLga: BelongsToGetAssociationMixin<LGA>;
 
     declare purpose_id: ForeignKey<Purpose["id"]>;
     declare purpose?: NonAttribute<Purpose>;
@@ -43,7 +44,7 @@ export const initGroundRentRateModel = (sequelize: Sequelize) => {
                 primaryKey: true,
             },
 
-            zone_id: {
+            lga_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
             },
@@ -71,6 +72,7 @@ export const initGroundRentRateModel = (sequelize: Sequelize) => {
         {
             sequelize,
             modelName: "ground_rent_rate",
+            tableName: "ground_rent_rates",
             underscored: true,
             timestamps: true,
         }
