@@ -25,17 +25,15 @@ const validateEffectivePeriod = (
     effective_to?: string | null
 ) => {
     if (Number.isNaN(Date.parse(effective_from))) {
-        throw new Error("Invalid effective_from date");
+        throw "Invalid effective_from date";
     }
 
     if (effective_to && Number.isNaN(Date.parse(effective_to))) {
-        throw new Error("Invalid effective_to date");
+        throw "Invalid effective_to date";
     }
 
     if (effective_to && effective_to < effective_from) {
-        throw new Error(
-            "effective_to must be on or after effective_from"
-        );
+        throw "effective_to must be on or after effective_from"
     }
 };
 
@@ -46,13 +44,13 @@ const checkRelatedRecords = async (
     const lga = await db.LGA.findByPk(lga_id);
 
     if (!lga) {
-        throw new Error("LGA not found");
+        throw "LGA not found";
     }
 
     const purpose = await db.Purpose.findByPk(purpose_id);
 
     if (!purpose) {
-        throw new Error("Purpose not found");
+        throw "Purpose not found";
     }
 };
 
@@ -94,9 +92,8 @@ const checkOverlappingRate = async (params: {
     const existingRate = await db.GroundRentRate.findOne({ where });
 
     if (existingRate) {
-        throw new Error(
-            "A ground rent rate already exists for this LGA and purpose during the specified effective period"
-        );
+        throw "A ground rent rate already exists for this LGA and purpose during the specified effective period"
+
     }
 };
 
@@ -116,7 +113,7 @@ export const addGroundRentRateService = async (
         !Number.isFinite(rate_per_sqm) ||
         rate_per_sqm <= 0
     ) {
-        throw new Error("rate_per_sqm must be a positive number");
+        throw "rate_per_sqm must be a positive number"
     }
 
     validateEffectivePeriod(effective_from, effective_to);
@@ -130,15 +127,24 @@ export const addGroundRentRateService = async (
         effective_to,
     });
 
-    return db.GroundRentRate.create({
-        lga_id,
-        purpose_id,
-        rate_per_sqm,
-        effective_from: new Date(`${effective_from}T00:00:00.000Z`),
-        effective_to: effective_to
-            ? new Date(`${effective_to}T00:00:00.000Z`)
-            : null,
-    });
+    try {
+        return await db.GroundRentRate.create({
+            lga_id,
+            purpose_id,
+            rate_per_sqm,
+            effective_from: new Date(`${effective_from}T00:00:00.000Z`),
+            effective_to: effective_to
+                ? new Date(`${effective_to}T00:00:00.000Z`)
+                : null,
+        });
+    } catch (error) {
+        if (isRateOverlapError(error)) {
+            throw "A ground rent rate already exists for this LGA and purpose during the specified effective period"
+
+        }
+
+        throw error;
+    }
 };
 
 export const updateGroundRentRateService = async (
@@ -156,7 +162,7 @@ export const updateGroundRentRateService = async (
     const rate = await db.GroundRentRate.findByPk(rate_id);
 
     if (!rate) {
-        throw new Error("Ground rent rate not found");
+        throw "Ground rent rate not found";
     }
 
     if (
@@ -164,7 +170,7 @@ export const updateGroundRentRateService = async (
         !Number.isFinite(rate_per_sqm) ||
         rate_per_sqm <= 0
     ) {
-        throw new Error("rate_per_sqm must be a positive number");
+        throw "rate_per_sqm must be a positive number";
     }
 
     validateEffectivePeriod(effective_from, effective_to);
@@ -178,16 +184,23 @@ export const updateGroundRentRateService = async (
         effective_to,
         exclude_id: rate_id,
     });
+    try {
+        return rate.update({
+            lga_id,
+            purpose_id,
+            rate_per_sqm,
+            effective_from: new Date(`${effective_from}T00:00:00.000Z`),
+            effective_to: effective_to
+                ? new Date(`${effective_to}T00:00:00.000Z`)
+                : null,
+        });
+    } catch (error) {
+        if (isRateOverlapError(error)) {
+            throw "A ground rent rate already exists for this LGA and purpose during the specified effective period"
+        }
 
-    return rate.update({
-        lga_id,
-        purpose_id,
-        rate_per_sqm,
-        effective_from: new Date(`${effective_from}T00:00:00.000Z`),
-        effective_to: effective_to
-            ? new Date(`${effective_to}T00:00:00.000Z`)
-            : null,
-    });
+        throw error;
+    }
 };
 
 export const getAllGroundRentRatesService = async (
@@ -211,7 +224,7 @@ export const getAllGroundRentRatesService = async (
             year < 1900 ||
             year > 9999
         ) {
-            throw new Error("Invalid effective_year");
+            throw "Invalid effective_year";
         }
 
         const yearStart = `${year}-01-01`;
@@ -278,7 +291,7 @@ export const getGroundRentRateByIdService = async (
     });
 
     if (!rate) {
-        throw new Error("Ground rent rate not found");
+        throw "Ground rent rate not found";
     }
 
     return rate;
@@ -290,10 +303,30 @@ export const deleteGroundRentRateService = async (
     const rate = await db.GroundRentRate.findByPk(rate_id);
 
     if (!rate) {
-        throw new Error("Ground rent rate not found");
+        throw "Ground rent rate not found"
     }
 
     await rate.destroy();
 
     return rate;
+};
+
+const isRateOverlapError = (error: unknown): boolean => {
+    const err = error as {
+        original?: {
+            constraint?: string;
+            code?: string;
+        };
+        parent?: {
+            constraint?: string;
+            code?: string;
+        };
+    };
+
+    const dbError = err.original ?? err.parent;
+
+    return (
+        dbError?.constraint === "ground_rent_rate_no_overlap" ||
+        dbError?.code === "23P01"
+    );
 };

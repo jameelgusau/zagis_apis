@@ -13,7 +13,16 @@ import { getDashboardFilesCountsbyUser, getDashboardGraph, getDashboardStats } f
 import { addLanduse, addLanduseSchema, addPurpose, addPurposeSchema, deletePurpose, getLanduse, getLanduseAndPurpose, getPurposes, updatePurpose, updatePurposeSchema } from '../controllers/landuse.controller';
 import { addZone, deleteZone, ZoneSchema, ZoneUpdateSchema, updateZone, getZoneById, getAllZones } from '../controllers/zone.controller';
 import { addLGA, deleteLGA, getAllLGAs, getLGAById, LGASchema, LGAUpdateSchema, updateLGA } from '../controllers/lga.controller';
-
+import {
+    GroundRentRateSchema,
+    GroundRentRateUpdateSchema,
+    getAllGroundRentRatesSchema,
+    addGroundRentRate,
+    updateGroundRentRate,
+    getAllGroundRentRates,
+    getGroundRentRateById,
+    deleteGroundRentRate,
+} from "../controllers/groundRentRate.controller";
 
 const router = express.Router();
 
@@ -91,4 +100,10 @@ router.get('/lga', authorize(), getAllLGAs);
 router.get('/lga/:lga_id', authorize(), getLGAById);
 router.delete('/lga/:id', authorize(Roles.admin), deleteLGA)
 
+// Ground Rent Rate
+router.post('/ground-rent-rate', authorize(Roles.admin), GroundRentRateSchema, addGroundRentRate);
+router.put('/ground-rent-rate', authorize(Roles.admin), GroundRentRateUpdateSchema, updateGroundRentRate);
+router.get('/ground-rent-rate', authorize(), getAllGroundRentRatesSchema, getAllGroundRentRates);
+router.get('/ground-rent-rate/:rate_id', authorize(), getGroundRentRateById);
+router.delete('/ground-rent-rate/:rate_id', authorize(Roles.admin), deleteGroundRentRate);
 export default router
