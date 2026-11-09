@@ -25,6 +25,9 @@ export class GroundRentPayment extends Model<
     declare payment_date: Date;
 
     declare amount: string;
+    declare is_historical: boolean;
+    declare receipt_date: Date | null;
+    declare receipt_notes: string | null;
 
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -61,6 +64,21 @@ export const initGroundRentPaymentModel = (
                 allowNull: false,
             },
 
+            is_historical: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
+
+            receipt_date: {
+                type: DataTypes.DATEONLY,
+                allowNull: true,
+            },
+
+            receipt_notes: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
             amount: {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false,

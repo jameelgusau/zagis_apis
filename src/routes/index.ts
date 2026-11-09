@@ -23,6 +23,9 @@ import {
     getGroundRentRateById,
     deleteGroundRentRate,
 } from "../controllers/groundRentRate.controller";
+import { verifyGroundRentYear, VerifyGroundRentYearSchema } from '../controllers/groundRentVerification.controller';
+import { getGroundRentHistory } from '../controllers/groundRentHistory.controller';
+import { generateGroundRentAssessment, generateGroundRentAssessmentSchema } from '../controllers/groundRentAssessmentGeneration.controller';
 
 const router = express.Router();
 
@@ -86,7 +89,7 @@ router.delete('/file/:id', authorize(Roles.admin), deleteFile);
 router.get("/dashboard/stats", authorize(), getDashboardStats);
 router.get("/dashboard/graph", authorize(), getDashboardGraph);
 
-//zone
+// Zone
 router.post('/zone', authorize(Roles.admin), ZoneSchema, addZone);
 router.put('/zone', authorize(Roles.admin), ZoneUpdateSchema, updateZone);
 router.get('/zone', authorize(), getAllZones);
@@ -106,4 +109,18 @@ router.put('/ground-rent-rate', authorize(Roles.admin), GroundRentRateUpdateSche
 router.get('/ground-rent-rate', authorize(), getAllGroundRentRatesSchema, getAllGroundRentRates);
 router.get('/ground-rent-rate/:rate_id', authorize(), getGroundRentRateById);
 router.delete('/ground-rent-rate/:rate_id', authorize(Roles.admin), deleteGroundRentRate);
+router.post('/verify-ground-rent', authorize(Roles.admin), VerifyGroundRentYearSchema, verifyGroundRentYear);
+router.get('/ground-rent-history/:fileId', authorize(), getGroundRentHistory);
+router.post(
+  "/assessments/generate",
+  authorize(), 
+  generateGroundRentAssessmentSchema,
+  generateGroundRentAssessment
+);
+
+
+
+
+
+
 export default router

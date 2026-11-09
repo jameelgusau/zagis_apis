@@ -14,6 +14,7 @@ import { Account } from "./account.model";
 import { Landuse } from "./landuse.model";
 import { Purpose } from "./purpose.model";
 import { LGA } from "./lga.model";
+import { FileGrant } from "./file_grants.model";
 
 export class File extends Model<
     InferAttributes<File>,
@@ -35,6 +36,9 @@ export class File extends Model<
 
     declare record?: Record;
     declare getRecord: HasOneGetAssociationMixin<Record>;
+    declare grants?: FileGrant[];
+    declare getGrants: HasOneGetAssociationMixin<FileGrant>;
+
 }
 
 export const initFileModel = (sequelize: Sequelize) => {

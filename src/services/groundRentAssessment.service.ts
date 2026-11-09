@@ -3,7 +3,7 @@ import { db } from "../db";
 
 
 
-const getFileWithAssociations = async (file_id: number) => {
+const getFileWithAssociations = async (file_id: string) => {
 const file = await db.File.findByPk(file_id, {
     include: [
         {

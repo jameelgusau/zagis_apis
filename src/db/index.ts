@@ -24,6 +24,8 @@ import { GroundRentPayment, initGroundRentPaymentModel } from "../models/groundR
 import { GroundRentPaymentAllocation, initGroundRentPaymentAllocationModel } from "../models/ground_rent_payment_allocations.model";
 import { GroundRentPenalty, initGroundRentPenaltyModel } from "../models/GroundRentPenalty.model";
 import { GroundRentCredit, initGroundRentCreditModel } from "../models/groundRentCredit.model";
+import { GroundRentPaymentYear, initGroundRentPaymentYearModel } from "../models/groundRentPaymentYear.model";
+import { GroundRentYearStatus, initGroundRentYearStatusModel } from "../models/groundRentYearStatus.model";
 
 export interface Database {
     sequelize: Sequelize;
@@ -49,6 +51,8 @@ export interface Database {
     GroundRentPaymentAllocation: typeof GroundRentPaymentAllocation;
     GroundRentPenalty: typeof GroundRentPenalty;
     GroundRentCredit: typeof GroundRentCredit;
+    GroundRentPaymentYear: typeof GroundRentPaymentYear;
+    GroundRentYearStatus: typeof GroundRentYearStatus;
 }
 
 export let db: Database;
@@ -87,6 +91,8 @@ export const initialize = async () => {
     initGroundRentPaymentAllocationModel(sequelize);
     initGroundRentPenaltyModel(sequelize);
     initGroundRentCreditModel(sequelize);
+    initGroundRentPaymentYearModel(sequelize);
+    initGroundRentYearStatusModel(sequelize);
     Account.hasMany(RefreshToken, {
         foreignKey: "account_id",
         onDelete: "CASCADE",
@@ -291,15 +297,15 @@ export const initialize = async () => {
         foreignKey: "file_id",
         as: "file",
     });
-Zone.hasMany(LGA, {
-    foreignKey: "zone_id",
-    as: "lgas",
-});
+    Zone.hasMany(LGA, {
+        foreignKey: "zone_id",
+        as: "lgas",
+    });
 
-LGA.belongsTo(Zone, {
-    foreignKey: "zone_id",
-    as: "zone",
-});
+    LGA.belongsTo(Zone, {
+        foreignKey: "zone_id",
+        as: "zone",
+    });
     GroundRentPayment.hasMany(GroundRentPaymentAllocation, {
         foreignKey: "payment_id",
         as: "allocations",
@@ -359,6 +365,26 @@ LGA.belongsTo(Zone, {
         foreignKey: "payment_id",
         as: "payment",
     });
+    GroundRentPayment.hasMany(GroundRentPaymentYear, {
+        foreignKey: "payment_id",
+        as: "coveredYears",
+    });
+
+    GroundRentPaymentYear.belongsTo(GroundRentPayment, {
+        foreignKey: "payment_id",
+        as: "payment",
+    });
+
+    File.hasMany(GroundRentYearStatus, {
+        foreignKey: "file_id",
+        as: "groundRentYearStatuses",
+    });
+
+    GroundRentYearStatus.belongsTo(File, {
+        foreignKey: "file_id",
+        as: "file",
+    });
+
 
     await sequelize.authenticate();
     await sequelize.sync();
@@ -386,5 +412,7 @@ LGA.belongsTo(Zone, {
         GroundRentPaymentAllocation,
         GroundRentPenalty,
         GroundRentCredit,
+        GroundRentPaymentYear,
+        GroundRentYearStatus,
     };
 };
