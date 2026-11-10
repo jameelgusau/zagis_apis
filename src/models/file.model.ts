@@ -24,6 +24,7 @@ export class File extends Model<
 
     declare cofo_number: string;
     declare title_holder_name: string;
+    declare location: string | null;
 
     declare created_by: ForeignKey<Account["id"]> | null;
     declare updated_by: ForeignKey<Account["id"]> | null;
@@ -62,12 +63,14 @@ export const initFileModel = (sequelize: Sequelize) => {
                 allowNull: false,
                 defaultValue: "",
             },
-
+            location: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+            },
             created_by: {
                 type: DataTypes.UUID,
                 allowNull: true,
             },
-
             updated_by: {
                 type: DataTypes.UUID,
                 allowNull: true,

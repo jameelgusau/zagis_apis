@@ -33,7 +33,6 @@ export class Record extends Model<
     declare getFile: BelongsToGetAssociationMixin<File>;
 }
 
-
 export const initRecordModel = (sequelize: Sequelize) => {
     Record.init({
         id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },

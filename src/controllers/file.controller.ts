@@ -8,29 +8,52 @@ import { fileService, getFilesServices, updateFileService, deleteFileService } f
 
 
 
-export const FileSchema = (req: Request, res: Response, next: NextFunction) => {
+
+export const FileSchema = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     const schema = Joi.object({
-        cofo_number: Joi.string().required(),
-        title_holder_name: Joi.string().required(),
-        page_number: Joi.number().empty("").allow(null).optional(),
+        // Property details
+        cofo_number: Joi.string().trim().required(),
+        title_holder_name: Joi.string().trim().required(),
+        location: Joi.string().allow("", null).optional(),
         landuse_id: Joi.string().guid().required(),
         purpose_id: Joi.string().guid().required(),
-        serial_number: Joi.number().empty("").allow(null).optional(),
-        volume_number: Joi.number().empty("").allow(null).optional(),
-        registration_date: Joi.date().empty("").allow(null).optional(),
-        execution_date: Joi.date().empty("").allow(null).optional(),
-        collection_date: Joi.date().empty("").allow(null).optional(),
+        lga_id: Joi.string().guid().required(),
+
+        area_sqm: Joi.number().positive().precision(2).required(),
+
+        // Original grant
+        commencement_date: Joi.date().iso().required(),
+        expiry_date: Joi.date()
+            .iso()
+            .greater(Joi.ref("commencement_date"))
+            .required(),
+
+        // Record details
+        page_number: Joi.number().integer().positive().allow(null).optional(),
+        serial_number: Joi.number().integer().positive().allow(null).optional(),
+        volume_number: Joi.number().integer().positive().allow(null).optional(),
+
+        registration_date: Joi.date().iso().allow("", null).optional(),
+        execution_date: Joi.date().iso().allow("", null).optional(),
+        collection_date: Joi.date().iso().allow("", null).optional(),
+
         certificate_type: Joi.string()
             .valid("Certificate", "Letter of Grant", "Temporary")
             .allow(null)
             .optional(),
+
         collected: Joi.string()
             .valid("Yes", "No")
             .allow(null)
             .optional(),
     });
-    validateRequest(req, next, schema)
-}
+
+    validateRequest(req, next, schema);
+};
 
 
 export const File = async (req: JWTRequest, res: Response, next: NextFunction) => {
@@ -76,6 +99,7 @@ export const updateFileSchema = (req: Request, res: Response, next: NextFunction
         title_holder_name: Joi.string().required(),
         landuse_id: Joi.string().guid().required(),
         purpose_id: Joi.string().guid().required(),
+        location: Joi.string().empty("").allow(null).optional(),
         page_number: Joi.number().empty("").allow(null).optional(),
         serial_number: Joi.number().empty("").allow(null).optional(),
         volume_number: Joi.number().empty("").allow(null).optional(),

@@ -26,6 +26,8 @@ import {
 import { verifyGroundRentYear, VerifyGroundRentYearSchema } from '../controllers/groundRentVerification.controller';
 import { getGroundRentHistory } from '../controllers/groundRentHistory.controller';
 import { generateGroundRentAssessment, generateGroundRentAssessmentSchema } from '../controllers/groundRentAssessmentGeneration.controller';
+import { bulkGenerateGroundRentAssessments, bulkGenerateGroundRentAssessmentsSchema } from '../controllers/bulkGroundRentAssessmentGeneration.controller';
+import { previewBulkGroundRentAssessments, BulkGroundRentAssessmentPreviewSchema } from '../controllers/bulkGroundRentAssessmentPreview.controller';
 
 const router = express.Router();
 
@@ -117,8 +119,19 @@ router.post(
   generateGroundRentAssessmentSchema,
   generateGroundRentAssessment
 );
+router.post(
+  "/assessments/generate/bulk",
+  authorize(),
+  bulkGenerateGroundRentAssessmentsSchema,
+  bulkGenerateGroundRentAssessments,
+);
 
-
+router.post(
+  "/assessments/preview/bulk",
+  authenticate,
+  BulkGroundRentAssessmentPreviewSchema,
+  previewBulkGroundRentAssessments
+);
 
 
 
