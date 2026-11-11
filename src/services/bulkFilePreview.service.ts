@@ -3,20 +3,21 @@ import * as XLSX from "xlsx";
 import Joi from "joi";
 import { Op, fn, col, where } from "sequelize";
 import { db } from "../db";
+import { FileAttributes } from "./file.service";
 
 interface PreviewRow {
     rowNumber: number;
     status: "VALID" | "INVALID";
     errors: string[];
-    data: Record<string, any> | null;
+    data: Omit<FileAttributes, "created_by"> | null;
 }
 
 const allowedColumns = [
     "cofo_number",
     "title_holder_name",
-    "landuse_id",
-    "purpose_id",
-    "lga_id",
+    "landuse_name",
+    "purpose_name",
+    "lga_name",
     "area_sqm",
     "commencement_date",
     "expiry_date",
@@ -35,9 +36,9 @@ const bulkFileSchema = Joi.object({
     cofo_number: Joi.string().trim().required(),
     title_holder_name: Joi.string().trim().required(),
 
-    landuse_id: Joi.string().guid().required(),
-    purpose_id: Joi.string().guid().required(),
-    lga_id: Joi.string().guid().required(),
+    landuse_name: Joi.string().trim().required(),
+    purpose_name: Joi.string().trim().required(),
+    lga_name: Joi.string().trim().required(),
 
     area_sqm: Joi.number().positive().precision(2).required(),
 
@@ -66,6 +67,82 @@ const bulkFileSchema = Joi.object({
         .allow(null)
         .optional(),
 });
+
+
+const resolveReferenceIds = async (data: any) => {
+    const [landuse, purpose, lga] = await Promise.all([
+        db.Landuse.findOne({
+            where: {
+                landuse_name: {
+                    [Op.iLike]: data.landuse_name.trim(),
+                },
+            },
+        }),
+
+        db.Purpose.findOne({
+            where: {
+                purpose_name: {
+                    [Op.iLike]: data.purpose_name.trim(),
+                },
+            },
+        }),
+
+        db.LGA.findOne({
+            where: {
+                name: {
+                    [Op.iLike]: data.lga_name.trim(),
+                },
+            },
+        }),
+    ]);
+
+    const errors: string[] = [];
+
+    if (!landuse) {
+        errors.push(`Landuse "${data.landuse_name}" was not found`);
+    }
+
+    if (!purpose) {
+        errors.push(`Purpose "${data.purpose_name}" was not found`);
+    }
+
+    if (!lga) {
+        errors.push(`LGA "${data.lga_name}" was not found`);
+    }
+
+    if (errors.length) {
+        return { errors, data: null };
+    }
+
+    if (purpose!.landuse_id !== landuse!.id) {
+        errors.push(
+            `Purpose "${data.purpose_name}" does not belong to landuse "${data.landuse_name}"`
+        );
+
+        return { errors, data: null };
+    }
+
+    // Remove the spreadsheet name fields.
+    const {
+        landuse_name,
+        purpose_name,
+        lga_name,
+        ...fileData
+    } = data;
+
+    return {
+        errors: [],
+        data: {
+            ...fileData,
+            landuse_id: landuse!.id,
+            purpose_id: purpose!.id,
+            lga_id: lga!.id,
+            landuse_name,
+            purpose_name,
+            lga_name,
+        },
+    };
+};
 
 // Convert Excel dates and date strings into YYYY-MM-DD
 const normalizeDate = (value: any): string | null => {
@@ -160,7 +237,7 @@ export const previewBulkFiles = async (
     buffer: Buffer
 ) => {
     if (!buffer || buffer.length === 0) {
-        throw new Error("Please upload a valid spreadsheet");
+        throw "Please upload a valid spreadsheet";
     }
 
     // Read spreadsheet
@@ -172,7 +249,7 @@ export const previewBulkFiles = async (
     const sheetName = workbook.SheetNames[0];
 
     if (!sheetName) {
-        throw new Error("The uploaded spreadsheet has no worksheet");
+        throw "The uploaded spreadsheet has no worksheet";
     }
 
     const worksheet = workbook.Sheets[sheetName];
@@ -186,7 +263,7 @@ export const previewBulkFiles = async (
     );
 
     if (!rawRows.length) {
-        throw new Error("The uploaded spreadsheet contains no data");
+        throw "The uploaded spreadsheet contains no data";
     }
 
     const results: PreviewRow[] = [];
@@ -269,23 +346,26 @@ export const previewBulkFiles = async (
         }
 
         // Check reference IDs exist in the database
-        if (value) {
-            const [landuse, purpose, lga] = await Promise.all([
-                db.Landuse.findByPk(value.landuse_id),
-                db.Purpose.findByPk(value.purpose_id),
-                db.LGA.findByPk(value.lga_id),
-            ]);
+        let resolvedData: Omit<FileAttributes, "created_by"> | null = null;
 
-            if (!landuse) errors.push("Land use does not exist");
-            if (!purpose) errors.push("Purpose does not exist");
-            if (!lga) errors.push("LGA does not exist");
+        if (!error) {
+            const referenceResult = await resolveReferenceIds(value);
+
+            errors.push(...referenceResult.errors);
+
+            if (referenceResult.data) {
+                resolvedData = referenceResult.data as Omit<
+                    FileAttributes,
+                    "created_by"
+                >;
+            }
         }
 
         results.push({
             rowNumber: row.rowNumber,
             status: errors.length ? "INVALID" : "VALID",
             errors,
-            data: errors.length ? null : value,
+            data: errors.length ? null : resolvedData,
         });
     }
 
@@ -294,6 +374,7 @@ export const previewBulkFiles = async (
     ).length;
 
     const invalidCount = results.length - validCount;
+
 
     return {
         summary: {

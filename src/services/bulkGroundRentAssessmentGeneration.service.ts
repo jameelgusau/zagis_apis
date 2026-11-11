@@ -42,9 +42,8 @@ export const bulkGenerateGroundRentAssessments = async ({
     rentYear < 1900 ||
     rentYear > currentYear
   ) {
-    throw new Error(
-      `Rent year must be between 1900 and ${currentYear}.`
-    );
+    throw `Rent year must be between 1900 and ${currentYear}.`
+    ;
   }
 
   if (
@@ -53,9 +52,8 @@ export const bulkGenerateGroundRentAssessments = async ({
       fileIds.length === 0 ||
       fileIds.some((id) => typeof id !== "string" || !id.trim()))
   ) {
-    throw new Error(
-      "fileIds must be a non-empty array of property file IDs when provided."
-    );
+    throw "fileIds must be a non-empty array of property file IDs when provided."
+    
   }
 
   const uniqueFileIds = fileIds

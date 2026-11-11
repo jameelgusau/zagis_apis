@@ -14,20 +14,26 @@ import { addLanduse, addLanduseSchema, addPurpose, addPurposeSchema, deletePurpo
 import { addZone, deleteZone, ZoneSchema, ZoneUpdateSchema, updateZone, getZoneById, getAllZones } from '../controllers/zone.controller';
 import { addLGA, deleteLGA, getAllLGAs, getLGAById, LGASchema, LGAUpdateSchema, updateLGA } from '../controllers/lga.controller';
 import {
-    GroundRentRateSchema,
-    GroundRentRateUpdateSchema,
-    getAllGroundRentRatesSchema,
-    addGroundRentRate,
-    updateGroundRentRate,
-    getAllGroundRentRates,
-    getGroundRentRateById,
-    deleteGroundRentRate,
+  GroundRentRateSchema,
+  GroundRentRateUpdateSchema,
+  getAllGroundRentRatesSchema,
+  addGroundRentRate,
+  updateGroundRentRate,
+  getAllGroundRentRates,
+  getGroundRentRateById,
+  deleteGroundRentRate,
 } from "../controllers/groundRentRate.controller";
 import { verifyGroundRentYear, VerifyGroundRentYearSchema } from '../controllers/groundRentVerification.controller';
 import { getGroundRentHistory } from '../controllers/groundRentHistory.controller';
 import { generateGroundRentAssessment, generateGroundRentAssessmentSchema } from '../controllers/groundRentAssessmentGeneration.controller';
 import { bulkGenerateGroundRentAssessments, bulkGenerateGroundRentAssessmentsSchema } from '../controllers/bulkGroundRentAssessmentGeneration.controller';
 import { previewBulkGroundRentAssessments, BulkGroundRentAssessmentPreviewSchema } from '../controllers/bulkGroundRentAssessmentPreview.controller';
+import { uploadSpreadsheet } from '../middlewares/upload.middleware';
+import { bulkPreviewFiles, downloadBulkFileTemplate } from '../controllers/bulkFile.controller';
+import { bulkImportFiles } from "../controllers/bulkFileImport.controller";
+import { getFileDetails } from '../controllers/fileDetails.controller';
+import { searchFiles } from '../controllers/fileSearch.controller';
+
 
 const router = express.Router();
 
@@ -51,7 +57,7 @@ router.put('/user',
 // auths
 router.post('/authenticate', authenticateSchema, authenticate);
 router.post('/verify-email', verifyEmailSchema, verifyEmail);
-router.put('/change-password', authorize(), changePasswordSchema,changePassword);
+router.put('/change-password', authorize(), changePasswordSchema, changePassword);
 router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 router.post('/revoke-token', authorize(), revokeTokenSchema, revokeToken);
@@ -115,7 +121,7 @@ router.post('/verify-ground-rent', authorize(Roles.admin), VerifyGroundRentYearS
 router.get('/ground-rent-history/:fileId', authorize(), getGroundRentHistory);
 router.post(
   "/assessments/generate",
-  authorize(), 
+  authorize(),
   generateGroundRentAssessmentSchema,
   generateGroundRentAssessment
 );
@@ -128,12 +134,31 @@ router.post(
 
 router.post(
   "/assessments/preview/bulk",
-  authenticate,
+  authorize(),
   BulkGroundRentAssessmentPreviewSchema,
   previewBulkGroundRentAssessments
 );
 
+router.post(
+  "/files/bulk/preview",
+  authorize(),
+  uploadSpreadsheet.single("file"),
+  bulkPreviewFiles
+);
 
+router.post(
+  "/files/bulk/import",
+  authorize(),
+  uploadSpreadsheet.single("file"),
+  bulkImportFiles
+);
 
+router.get(
+  "/files/bulk/template",
+  downloadBulkFileTemplate
+);
+
+router.get("/files/:id/details", getFileDetails);
+router.get("/files/search", searchFiles);
 
 export default router

@@ -3,26 +3,26 @@ import fs from 'fs';
 import { Op } from "sequelize";
 import { db } from "../db";
 
-interface FileAttributes {
+export interface FileAttributes {
     cofo_number: string;
     title_holder_name: string;
     landuse_id: string;
     purpose_id: string;
     lga_id: string;
-    area_sqm: number 
+    area_sqm: number;
     location?: string | null;
 
-    // Original grant details
-    commencement_date: string;
-    expiry_date: string;
+    commencement_date: string | Date;
+    expiry_date: string | Date;
 
-    // Record details
-    registration_date?: string | null;
-    execution_date?: string | null;
-    collection_date?: string | null;
+    registration_date?: string | Date | null;
+    execution_date?: string | Date | null;
+    collection_date?: string | Date | null;
+
     page_number?: number | null;
     volume_number?: number | null;
     serial_number?: number | null;
+
     certificate_type?: "Certificate" | "Letter of Grant" | "Temporary" | null;
     collected?: "Yes" | "No" | null;
 
@@ -67,7 +67,7 @@ export const fileService = async (params: FileAttributes) => {
         });
 
         if (existingFile) {
-            throw new Error(`Property with COFO number ${cofoNumber} already exists`);
+            throw `Property with COFO number ${cofoNumber} already exists`
         }
 
         // 1. Create property

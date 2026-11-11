@@ -35,9 +35,8 @@ export const previewBulkGroundRentAssessments = async ({
     rentYear < 1900 ||
     rentYear > currentYear
   ) {
-    throw new Error(
-      `Rent year must be between 1900 and ${currentYear}.`
-    );
+    throw `Rent year must be between 1900 and ${currentYear}.`
+    
   }
 
   if (
@@ -46,7 +45,7 @@ export const previewBulkGroundRentAssessments = async ({
       fileIds.length === 0 ||
       fileIds.some((id) => typeof id !== "string" || !id.trim()))
   ) {
-    throw new Error("fileIds must be a non-empty array when provided.");
+    throw "fileIds must be a non-empty array when provided.";
   }
 
   const uniqueFileIds = fileIds

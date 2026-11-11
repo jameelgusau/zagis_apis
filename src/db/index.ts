@@ -384,7 +384,13 @@ export const initialize = async () => {
         foreignKey: "file_id",
         as: "file",
     });
+    File.belongsTo(LGA, {
+        foreignKey: "lga_id",
+    });
 
+    LGA.hasMany(File, {
+        foreignKey: "lga_id",
+    });
 
     await sequelize.authenticate();
     await sequelize.sync();
