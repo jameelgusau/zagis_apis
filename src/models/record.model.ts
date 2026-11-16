@@ -18,9 +18,9 @@ export class Record extends Model<
     InferCreationAttributes<Record>
 > {
     declare id: CreationOptional<string>;
-    declare registration_date: Date | null;
-    declare execution_date: Date | null;
-    declare collection_date: Date | null;
+    declare registration_date: string | null;
+    declare execution_date: string | null;
+    declare collection_date: string | null;
     declare page_number: number | null;
     declare volume_number: number | null;
     declare created_by: ForeignKey<Account["id"]> | null;

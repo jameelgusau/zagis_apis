@@ -22,9 +22,8 @@ export class FileNameHistory extends Model<
 
     declare title_holder_name: string;
 
-    declare effective_from: Date;
-
-    declare effective_to: Date | null;
+declare effective_from: string;
+declare effective_to: string | null;
 
     declare created_at: CreationOptional<Date>;
 

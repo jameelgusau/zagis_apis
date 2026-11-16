@@ -22,9 +22,9 @@ export class FileGrant extends Model<
 
     declare grant_type: "ORIGINAL" | "REGRANT";
 
-    declare commencement_date: Date;
+    declare commencement_date: string ;
 
-    declare expiry_date: Date;
+    declare expiry_date: string ;
 
     declare created_at: CreationOptional<Date>;
 

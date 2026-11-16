@@ -22,7 +22,7 @@ export class FileAreaHistory extends Model<
 
     declare area_sqm: string;
 
-    declare effective_from: Date;
+    declare effective_from: string;
 
     declare effective_to: Date | null;
 

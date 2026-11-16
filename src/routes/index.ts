@@ -33,6 +33,7 @@ import { bulkPreviewFiles, downloadBulkFileTemplate } from '../controllers/bulkF
 import { bulkImportFiles } from "../controllers/bulkFileImport.controller";
 import { getFileDetails } from '../controllers/fileDetails.controller';
 import { searchFiles } from '../controllers/fileSearch.controller';
+import { updateBasicFile,  updateBasicFileSchema, updateFilePurpose, updateFilePurposeSchema } from '../controllers/fileUpdate.controller';
 
 
 const router = express.Router();
@@ -160,5 +161,14 @@ router.get(
 
 router.get("/files/:id/details", getFileDetails);
 router.get("/files/search", searchFiles);
+router.patch("/files/:id/basic",authorize(),updateBasicFileSchema, updateBasicFile);
+router.patch(
+    "/files/:id/purpose",
+    authorize(),
+    updateFilePurposeSchema,
+    updateFilePurpose
+);
+
+
 
 export default router

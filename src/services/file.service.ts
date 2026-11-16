@@ -29,15 +29,34 @@ export interface FileAttributes {
     created_by: string;
 }
 
-// Convert an ISO date string to a Date object for Sequelize
-const toDate = (value?: string | Date | null): Date | null => {
+const toDate = (value?: string | Date | null): string | null => {
     if (!value) return null;
 
     if (value instanceof Date) {
-        return value;
+        if (Number.isNaN(value.getTime())) {
+            throw new Error("Invalid date");
+        }
+
+        return [
+            value.getFullYear(),
+            String(value.getMonth() + 1).padStart(2, "0"),
+            String(value.getDate()).padStart(2, "0"),
+        ].join("-");
     }
 
-    return new Date(`${value.substring(0, 10)}T00:00:00.000Z`);
+    const date = value.substring(0, 10);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new Error("Invalid date format. Use YYYY-MM-DD.");
+    }
+
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+        throw new Error("Invalid date");
+    }
+
+    return date;
 };
 
 interface Extern {
@@ -196,7 +215,7 @@ export const updateFileService = async (params: Extern) => {
     const t = await db.sequelize.transaction();
     try {
         await db.File.update(
-        params,
+            params,
             { where: { id: file_id }, transaction: t }
         );
 
@@ -204,7 +223,7 @@ export const updateFileService = async (params: Extern) => {
             {
                 ...params,
                 file_id,
-            
+
             },
             { transaction: t }
         );

@@ -22,8 +22,8 @@ export class FilePurposeHistory extends Model<
     declare file_id: ForeignKey<File["id"]>;
     declare purpose_id: ForeignKey<Purpose["id"]>;
 
-    declare effective_from: Date;
-    declare effective_to: Date | null;
+    declare effective_from: string;
+    declare effective_to: string | null;
 
     declare created_at: CreationOptional<Date>;
 
