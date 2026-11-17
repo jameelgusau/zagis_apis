@@ -78,19 +78,19 @@ export const initFilePurposeHistoryModel = (sequelize: Sequelize) => {
             underscored: true,
             timestamps: false,
 
-           validate: {
-            effectiveDateRange() {
-                if (
-                    this.effective_to !== null &&
-                    this.effective_to !== undefined &&
-                    this.effective_from &&
-                    this.effective_to < this.effective_from
-                ) {
-                    throw "effective_to must be greater than or equal to effective_from"
-            
-                }
+            validate: {
+                effectiveDateRange() {
+                    if (
+                        this.effective_to !== null &&
+                        this.effective_to !== undefined &&
+                        this.effective_from &&
+                        this.effective_to < this.effective_from
+                    ) {
+                        throw "effective_to must be greater than or equal to effective_from"
+
+                    }
+                },
             },
-        },
 
         }
     );

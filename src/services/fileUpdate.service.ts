@@ -21,7 +21,12 @@ interface UpdatePurposeParams {
 }
 
 
-
+export interface UpdateAreaParams {
+    file_id: string;
+    area_sqm: number;
+    effective_from: string;
+    updated_by: string;
+}
 
 const getToday = (): string => {
     const today = new Date();
@@ -98,9 +103,8 @@ export const updateBasicFileService = async (
             });
 
             if (existingFile) {
-                throw new Error(
-                    `COFO number ${normalizedCofo} already belongs to another property`
-                );
+                throw `COFO number ${normalizedCofo} already belongs to another property`
+                ;
             }
 
             updates.cofo_number = normalizedCofo;
@@ -112,13 +116,13 @@ export const updateBasicFileService = async (
             const normalizedName = title_holder_name.trim().toUpperCase();
 
             if (!normalizedName) {
-                throw new Error("Title holder name cannot be empty");
+                throw "Title holder name cannot be empty";
             }
 
             const effectiveDate = params.effective_from || getToday();
 
             if (!isValidDate(effectiveDate)) {
-                throw new Error("Invalid effective_from date. Use YYYY-MM-DD.");
+                throw "Invalid effective_from date. Use YYYY-MM-DD.";
             }
 
             const originalGrant = await db.FileGrant.findOne({
@@ -128,13 +132,12 @@ export const updateBasicFileService = async (
             });
 
             if (!originalGrant) {
-                throw new Error("Original grant not found");
+                throw "Original grant not found";
             }
 
             if (effectiveDate < originalGrant.commencement_date) {
-                throw new Error(
-                    "Effective date cannot be earlier than the original grant commencement date"
-                );
+                throw "Effective date cannot be earlier than the original grant commencement date"
+                ;
             }
 
             const histories = await db.FileNameHistory.findAll({
@@ -235,7 +238,7 @@ export const updateFilePurposeService = async (
         } = params;
 
         if (!isValidDate(effective_from)) {
-            throw new Error("Invalid effective_from date. Use YYYY-MM-DD.");
+            throw "Invalid effective_from date. Use YYYY-MM-DD.";
         }
 
         const effectiveDate = effective_from;
@@ -247,7 +250,7 @@ export const updateFilePurposeService = async (
         });
 
         if (!file) {
-            throw new Error("Property not found");
+            throw "Property not found";
         }
 
         // 2. Validate land use
@@ -256,7 +259,7 @@ export const updateFilePurposeService = async (
         });
 
         if (!landuse) {
-            throw new Error("Land use not found");
+            throw "Land use not found";
         }
 
         // 3. Validate purpose belongs to land use
@@ -269,9 +272,8 @@ export const updateFilePurposeService = async (
         });
 
         if (!purpose) {
-            throw new Error(
-                "Purpose not found or does not belong to the selected land use"
-            );
+            throw "Purpose not found or does not belong to the selected land use"
+            ;
         }
 
         // 4. Get all purpose history records
@@ -295,9 +297,8 @@ export const updateFilePurposeService = async (
             previousHistory?.effective_to &&
             previousHistory.effective_to < effectiveDate
         ) {
-            throw new Error(
-                "Effective date falls outside the existing purpose history period"
-            );
+            throw "Effective date falls outside the existing purpose history period"
+            
         }
 
 
@@ -355,13 +356,148 @@ export const updateFilePurposeService = async (
             );
 
             if (!currentPurpose) {
-                throw new Error("Current purpose not found");
+                throw "Current purpose not found";
             }
 
             await file.update(
                 {
                     landuse_id: currentPurpose.landuse_id,
                     purpose_id: latestHistory.purpose_id,
+                    updated_by,
+                },
+                { transaction }
+            );
+        }
+
+        await transaction.commit();
+
+        return file;
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};
+
+
+export const updateFileAreaService = async (
+    params: UpdateAreaParams
+) => {
+    const transaction = await db.sequelize.transaction();
+
+    try {
+        const {
+            file_id,
+            area_sqm,
+            effective_from,
+            updated_by,
+        } = params;
+
+        // 1. Validate area
+        if (!Number.isFinite(area_sqm) || area_sqm <= 0) {
+            throw "Area must be greater than zero";
+        }
+
+        // 2. Validate effective date
+        if (!isValidDate(effective_from)) {
+            throw "Invalid effective date. Use YYYY-MM-DD.";
+        }
+
+        // 3. Retrieve and lock property
+        const file = await db.File.findByPk(file_id, {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+
+        if (!file) {
+            throw "Property not found";
+        }
+
+        // 4. Validate original grant commencement date
+        const originalGrant = await db.FileGrant.findOne({
+            where: {
+                file_id,
+                grant_type: "ORIGINAL",
+            },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+
+        if (!originalGrant) {
+            throw "Original grant not found";
+        }
+
+        if (effective_from < originalGrant.commencement_date) {
+            throw "Effective date cannot be earlier than the original grant commencement date"
+            ;
+        }
+
+        // 5. Retrieve existing area history
+        const histories = await db.FileAreaHistory.findAll({
+            where: { file_id },
+            order: [["effective_from", "ASC"]],
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+
+        // 6. Check for an existing effective date
+        const sameDateHistory = histories.find(
+            (history) => history.effective_from === effective_from
+        );
+
+        if (sameDateHistory) {
+            await sameDateHistory.update(
+                { area_sqm: String(area_sqm) },
+                { transaction }
+            );
+        } else {
+            const previousHistory = histories
+                .filter(
+                    (history) => history.effective_from < effective_from
+                )
+                .at(-1);
+
+            const nextHistory = histories.find(
+                (history) => history.effective_from > effective_from
+            );
+
+            // Close previous area period
+            if (previousHistory) {
+                await previousHistory.update(
+                    { effective_to: getPreviousDay(effective_from) },
+                    { transaction }
+                );
+            }
+
+            // Create new area history
+            await db.FileAreaHistory.create(
+                {
+                    file_id,
+                    area_sqm: String(area_sqm),
+                    effective_from,
+                    effective_to: nextHistory
+                        ? getPreviousDay(nextHistory.effective_from)
+                        : null,
+                },
+                { transaction }
+            );
+        }
+
+        // 7. Update current property area
+        const currentHistory = await db.FileAreaHistory.findOne({
+            where: {
+                file_id,
+                effective_from: {
+                    [Op.lte]: getToday(),
+                },
+            },
+            order: [["effective_from", "DESC"]],
+            transaction,
+        });
+
+        if (currentHistory) {
+            await file.update(
+                {
+                    area_sqm: Number(currentHistory.area_sqm),
                     updated_by,
                 },
                 { transaction }

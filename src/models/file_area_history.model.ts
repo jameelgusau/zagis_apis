@@ -24,7 +24,7 @@ export class FileAreaHistory extends Model<
 
     declare effective_from: string;
 
-    declare effective_to: Date | null;
+    declare effective_to: string | null;
 
     declare created_at: CreationOptional<Date>;
 
