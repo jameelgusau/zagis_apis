@@ -47,7 +47,7 @@ export const getFileDetailsService = async (fileId: string) => {
     });
 
     if (!file) {
-        throw new Error("Property not found");
+        throw "Property not found";
     }
 
     return file;

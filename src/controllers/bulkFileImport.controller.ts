@@ -11,13 +11,13 @@ export const bulkImportFiles = async (
 ) => {
     try {
         if (!req.file) {
-            throw new Error("Please upload an Excel or CSV file");
+            throw "Please upload an Excel or CSV file";
         }
 
         const userId = req.auth?.id;
 
         if (!userId) {
-            throw new Error("Authenticated user ID is required");
+            throw "Authenticated user ID is required";
         }
 
         const result = await importBulkFiles(

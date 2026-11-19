@@ -34,7 +34,7 @@ const toDate = (value?: string | Date | null): string | null => {
 
     if (value instanceof Date) {
         if (Number.isNaN(value.getTime())) {
-            throw new Error("Invalid date");
+            throw "Invalid date";
         }
 
         return [
@@ -47,13 +47,13 @@ const toDate = (value?: string | Date | null): string | null => {
     const date = value.substring(0, 10);
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        throw new Error("Invalid date format. Use YYYY-MM-DD.");
+        throw "Invalid date format. Use YYYY-MM-DD.";
     }
 
     const parsed = new Date(`${date}T00:00:00.000Z`);
 
     if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
-        throw new Error("Invalid date");
+        throw "Invalid date";
     }
 
     return date;

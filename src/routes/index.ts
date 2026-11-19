@@ -101,14 +101,14 @@ router.get("/dashboard/graph", authorize(), getDashboardGraph);
 // Zone
 router.post('/zone', authorize(Roles.admin), ZoneSchema, addZone);
 router.put('/zone', authorize(Roles.admin), ZoneUpdateSchema, updateZone);
-router.get('/zone', authorize(), getAllZones);
+router.get('/zones', authorize(), getAllZones);
 router.get('/zone/:zone_id', authorize(), getZoneById);
 router.delete('/zone/:id', authorize(Roles.admin), deleteZone);
 
 //LGA
 router.post('/lga', authorize(Roles.admin), LGASchema, addLGA)
 router.put('/lga', authorize(Roles.admin), LGAUpdateSchema, updateLGA);
-router.get('/lga', authorize(), getAllLGAs);
+router.get('/lgas', authorize(), getAllLGAs);
 router.get('/lga/:lga_id', authorize(), getLGAById);
 router.delete('/lga/:id', authorize(Roles.admin), deleteLGA)
 
