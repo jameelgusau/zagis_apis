@@ -25,38 +25,22 @@ export const basicUserDetails = (account: any) => {
     };
 }
 
-export const basicSchoolDetails = (school: any) => {
+export const basicLgaDetails = (lga: any) => {
     const {
         id,
         name,
-        ward,
-        school_code,
-        street_name,
-        school_community,
-        email,
-        phone,
-        lat,
-        lon,
-        location,
-        lga,
-
-    } = school
+        zone_id,
+        zone
+    } = lga;
     return {
         id,
         name,
-        ward,
-        school_code,
-        street_name,
-        school_community,
-        email,
-        phone,
-        lat,
-        lon,
-        location,
-        lga: lga?.name || '',
-        lga_id: lga?.id || ''
+        zone_id,
+        zone_name: zone?.name || ''
+
     }
 }
+
 
 export const basicCaregiverDetails = (caregiver: any) => {
     const { id, name, gender, age, community, phone, relationship, qualification, employment, image, nin, bvn, account, createdAt } = caregiver

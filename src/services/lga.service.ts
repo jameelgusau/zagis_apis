@@ -1,6 +1,7 @@
 
 import { Op, WhereOptions } from "sequelize";
 import { db } from "../db";
+import { basicLgaDetails } from "../utils/basicDetails";
 
 interface CreateLGAInput {
     name: string;
@@ -64,8 +65,8 @@ export const updateLGAService = async (params: UpdateLGAInput) => {
     if (existingLGA) {
         throw "Another LGA already uses this name";
     }
-
-    return lga.update({
+    console.log(params)
+    return await lga.update({
         name,
         zone_id,
     });
@@ -78,7 +79,7 @@ export const getAllLGAsService = async (zone_id?: string) => {
         where.zone_id = zone_id;
     }
 
-    return db.LGA.findAll({
+    const lgas = await db.LGA.findAll({
         where,
         include: [
             {
@@ -89,6 +90,8 @@ export const getAllLGAsService = async (zone_id?: string) => {
         ],
         order: [["name", "ASC"]],
     });
+    const records = lgas.map((data) => basicLgaDetails(data));
+    return records;
 };
 
 export const getLGAByIdService = async (lga_id: string) => {
@@ -122,7 +125,7 @@ export const deleteLGAService = async (lga_id: string) => {
 
     if (linkedFiles > 0) {
         throw "Cannot delete this LGA because files are linked to it"
-        
+
     }
 
     await lga.destroy();
